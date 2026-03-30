@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mediqueue – Smart Hospital Locator</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+/* ==============================
+   MEDIQUEUE - style.css
+   Smart Hospital Locator System
+   ============================== */
+
+:root {
+  --primary:    #2563eb;
+  --primary-d:  #1d4ed8;
+  --success:    #16a34a;
+  --danger:     #ef4444;
+  --warning:    #f97316;
+  --bg:         #f0f4f8;
+  --card:       #ffffff;
+  --sidebar-w:  260px;
+  --text:       #1e293b;
+  --muted:      #64748b;
+  --border:     #e2e8f0;
+  --radius:     12px;
+  --shadow:     0 2px 12px rgba(0,0,0,0.08);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ======= SCROLLBAR ======= */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:#f1f5f9; }
+::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:10px; }
+
+/* ======= SIDEBAR ======= */
+.sidebar {
+  width: var(--sidebar-w);
+  background: #0f172a;
+  height: 100vh;
+  position: fixed;
+  left: 0; top: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-brand {
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  border-bottom: 1px solid #1e293b;
+}
+.sidebar-brand i {
+  color: var(--primary);
+  font-size: 1.6rem;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 16px 0;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover {
+  color: #fff;
+  background: #1e293b;
+}
+.nav-item.active {
+  color: #fff;
+  background: #1e3a5f;
+  border-left-color: var(--primary);
+}
+.nav-item i { width: 20px; text-align: center; font-size: 1rem; }
+
+.emergency-nav { color: #fca5a5 !important; }
+.emergency-nav:hover, .emergency-nav.active {
+  background: #450a0a !important;
+  border-left-color: var(--danger) !important;
+}
+
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #1e293b;
+}
+.logout-btn {
+  width: 100%;
+  padding: 10px;
+  background: #1e293b;
+  color: #94a3b8;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.logout-btn:hover { background: var(--danger); color: #fff; }
+
+/* ======= MAIN CONTENT ======= */
+.main-content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ======= TOPBAR ======= */
+.topbar {
+  background: var(--card);
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: var(--shadow);
+}
+.hamburger {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  color: var(--muted);
+  display: none;
+}
+.topbar-title {
+  flex: 1;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.notif-bell {
+  position: relative;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: var(--muted);
+}
+.notif-bell .badge {
+  position: absolute;
+  top: -6px; right: -8px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.65rem;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+.user-avatar {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid var(--primary);
+}
+.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ======= SECTIONS ======= */
+.section {
+  display: none;
+  padding: 28px 28px 40px;
+  animation: fadeIn 0.3s ease;
+}
+.section.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.section-header { margin-bottom: 24px; }
+.section-header h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+.section-header p { color: var(--muted); font-size: 0.9rem; }
+
+/* ======= CARDS ======= */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+.card-title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mt-20 { margin-top: 20px; }
+.mt-10 { margin-top: 10px; }
+
+/* ======= STAT CARDS ======= */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.stat-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: transform 0.2s;
+}
+.stat-card:hover { transform: translateY(-2px); }
+.stat-icon {
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+.stat-card.blue .stat-icon  { background: #eff6ff; color: var(--primary); }
+.stat-card.green .stat-icon { background: #f0fdf4; color: var(--success); }
+.stat-card.orange .stat-icon{ background: #fff7ed; color: var(--warning); }
+.stat-card.red .stat-icon   { background: #fef2f2; color: var(--danger);  }
+.stat-number { font-size: 1.6rem; font-weight: 700; display: block; }
+.stat-label  { font-size: 0.8rem; color: var(--muted); }
+
+/* ======= QUICK ACTIONS ======= */
+.quick-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.quick-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.quick-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+.quick-btn.blue   { background: #eff6ff; color: var(--primary); }
+.quick-btn.green  { background: #f0fdf4; color: var(--success); }
+.quick-btn.orange { background: #fff7ed; color: var(--warning); }
+.quick-btn.red    { background: #fef2f2; color: var(--danger);  }
+
+/* ======= BUTTONS ======= */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--primary-d); }
+.btn-secondary {
+  background: #f1f5f9;
+  color: var(--text);
+}
+.btn-secondary:hover { background: #e2e8f0; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-success { background: var(--success); color: #fff; }
+.btn-lg { padding: 14px 28px; font-size: 1rem; }
+.w-full { width: 100%; justify-content: center; }
+
+/* ======= FORMS ======= */
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: 'Inter', sans-serif;
+  background: #f8fafc;
+  transition: border-color 0.2s;
+  outline: none;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.form-grid .form-group:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+.appointment-form .form-group:nth-child(6) { grid-column: 1 / -1; }
+
+/* ======= MAP ======= */
+.map-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.search-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+  background: var(--card);
+}
+.search-input:focus { border-color: var(--primary); }
+
+.map-wrapper {
+  position: relative;
+  height: 420px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #e2e8f0;
+}
+#map { width: 100%; height: 100%; }
+.map-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.map-loading.hidden { display: none; }
+
+/* Hospital List */
+.hospital-list { display: flex; flex-direction: column; gap: 12px; }
+.hospital-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #f8fafc;
+  transition: all 0.2s;
+}
+.hospital-item:hover { border-color: var(--primary); background: #eff6ff; }
+.hosp-icon {
+  width: 48px; height: 48px;
+  background: #eff6ff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.hosp-name { font-weight: 600; font-size: 0.95rem; }
+.hosp-dist { font-size: 0.8rem; color: var(--muted); }
+.hosp-actions { margin-left: auto; display: flex; gap: 8px; }
+.hosp-actions .btn { padding: 6px 12px; font-size: 0.8rem; }
+
+/* ======= APPOINTMENTS LIST ======= */
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  padding: 8px 18px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--card);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.filter-btn.active, .filter-btn:hover {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.appointments-list { display: flex; flex-direction: column; gap: 14px; }
+.appt-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s;
+}
+.appt-card:hover { transform: translateY(-2px); }
+.appt-icon {
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.appt-info { flex: 1; }
+.appt-hospital { font-weight: 600; font-size: 0.95rem; }
+.appt-detail { font-size: 0.82rem; color: var(--muted); margin-top: 3px; }
+.appt-status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.status-upcoming   { background: #eff6ff; color: var(--primary); }
+.status-completed  { background: #f0fdf4; color: var(--success); }
+.status-cancelled  { background: #fef2f2; color: var(--danger);  }
+.appt-actions { display: flex; gap: 6px; }
+.appt-actions .btn { padding: 6px 12px; font-size: 0.78rem; }
+
+/* ======= QUEUE ======= */
+.queue-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.queue-board-item {
+  padding: 24px;
+  border-radius: var(--radius);
+  text-align: center;
+}
+.queue-board-item.serving { background: #eff6ff; border: 2px solid var(--primary); }
+.queue-board-item.next    { background: #f0fdf4; border: 2px solid var(--success); }
+.queue-board-item.waiting { background: #fff7ed; border: 2px solid var(--warning); }
+.q-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.q-num { font-size: 2.5rem; font-weight: 800; }
+.queue-board-item.serving .q-num { color: var(--primary); }
+.queue-board-item.next .q-num    { color: var(--success); }
+.queue-board-item.waiting .q-num { color: var(--warning); }
+
+.my-queue-card {
+  background: linear-gradient(135deg, var(--primary), #1d4ed8);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 28px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.my-queue-num { font-size: 4rem; font-weight: 900; line-height: 1; }
+.my-queue-label { font-size: 0.9rem; opacity: 0.85; margin-top: 4px; }
+.my-queue-wait { margin-top: 16px; background: rgba(255,255,255,0.15); border-radius: 8px; padding: 12px; }
+
+/* ======= EMERGENCY ======= */
+.emergency-sos-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0 30px;
+}
+.sos-btn {
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: var(--danger);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 0 0 0 rgba(239,68,68,0.7);
+  transition: transform 0.2s;
+}
+.sos-btn i { font-size: 2.5rem; }
+.sos-btn small { font-size: 0.75rem; font-weight: 400; opacity: 0.85; }
+.sos-btn:hover { transform: scale(1.05); }
+.pulse { animation: pulse-ring 1.5s infinite; }
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
+  70%  { box-shadow: 0 0 0 20px rgba(239,68,68,0); }
+  100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+}
+.sos-btn.activated {
+  background: #7f1d1d;
+  animation: none;
+}
+
+.helpline-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.helpline-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: var(--shadow);
+}
+.helpline-card i { font-size: 1.6rem; }
+.help-label { font-size: 0.8rem; color: var(--muted); }
+.help-num {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+}
+.help-num:hover { color: var(--primary); }
+
+/* ======= UPLOAD ======= */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 48px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.upload-zone:hover, .upload-zone.dragover {
+  border-color: var(--primary);
+  background: #eff6ff;
+}
+.upload-icon { font-size: 3rem; color: var(--primary); margin-bottom: 12px; }
+.upload-zone p { font-weight: 500; margin-bottom: 4px; }
+.upload-zone small { color: var(--muted); font-size: 0.82rem; }
+
+.report-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.report-info-item {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+}
+.report-info-label { font-size: 0.78rem; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+.report-info-value { font-size: 1rem; font-weight: 600; margin-top: 4px; }
+
+.report-list-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  background: #f8fafc;
+  transition: all 0.2s;
+}
+.report-list-item:hover { border-color: var(--primary); }
+.report-list-item i { font-size: 1.4rem; color: var(--primary); }
+.report-meta { flex: 1; }
+.report-name { font-weight: 600; font-size: 0.9rem; }
+.report-date { font-size: 0.8rem; color: var(--muted); }
+
+/* ======= PROFILE ======= */
+.profile-wrapper {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+}
+.profile-avatar-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 32px 20px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+.profile-pic {
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  margin-bottom: 14px;
+  border: 3px solid var(--primary);
+}
+.profile-avatar-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+.profile-avatar-card p { font-size: 0.85rem; color: var(--muted); }
+.badge-pill {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 4px 14px;
+  background: #eff6ff;
+  color: var(--primary);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.profile-form-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+/* ======= AUTH MODAL ======= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(4px);
+}
+.modal { background: var(--card); border-radius: 16px; padding: 36px; min-width: 360px; }
+.auth-modal-box { max-width: 400px; width: 100%; }
+.auth-logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  text-align: center;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.auth-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 20px;
+}
+.auth-tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+.auth-tab.active { color: var(--primary); border-bottom: 2px solid var(--primary); margin-bottom: -2px; }
+.auth-switch { text-align: center; font-size: 0.8rem; color: var(--muted); margin-top: 12px; }
+
+/* ======= SUCCESS MODAL ======= */
+.success-modal-box { text-align: center; max-width: 380px; }
+.success-icon { font-size: 3.5rem; color: var(--success); margin-bottom: 16px; }
+.success-modal-box h3 { font-size: 1.3rem; margin-bottom: 8px; }
+.success-modal-box p { color: var(--muted); font-size: 0.9rem; }
+.queue-ticket {
+  background: linear-gradient(135deg, var(--primary), #1d4ed8);
+  color: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  font-size: 0.9rem;
+}
+.queue-ticket .ticket-num { font-size: 3rem; font-weight: 900; }
+
+/* ======= EMPTY STATE ======= */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+}
+.empty-state i { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; display: block; }
+.empty-state p { font-size: 0.9rem; }
+
+/* ======= TOAST ======= */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  background: #1e293b;
+  color: #fff;
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 9999;
+  max-width: 340px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: var(--success); }
+.toast.error   { background: var(--danger);  }
+.toast.warning { background: var(--warning); }
+
+/* ======= RESPONSIVE ======= */
+@media (max-width: 1100px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .helpline-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main-content { margin-left: 0; }
+  .hamburger { display: flex; }
+  .profile-wrapper { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+  .report-info-grid { grid-template-columns: 1fr 1fr; }
+  .queue-board { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .helpline-grid { grid-template-columns: 1fr 1fr; }
+  .section { padding: 16px 14px 32px; }
+  .quick-actions { flex-direction: column; }
+  .quick-btn { justify-content: center; }
+  .map-wrapper { height: 280px; }
+  .report-info-grid { grid-template-columns: 1fr; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ========== SIDEBAR ========== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <i class="fa-solid fa-hospital-user"></i>
+    <span>Mediqueue</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" data-section="dashboard">
+      <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+    </a>
+    <a href="#" class="nav-item" data-section="hospitals">
+      <i class="fa-solid fa-location-dot"></i><span>Nearby Hospitals</span>
+    </a>
+    <a href="#" class="nav-item" data-section="booking">
+      <i class="fa-solid fa-calendar-plus"></i><span>Book Appointment</span>
+    </a>
+    <a href="#" class="nav-item" data-section="appointments">
+      <i class="fa-solid fa-calendar-check"></i><span>My Appointments</span>
+    </a>
+    <a href="#" class="nav-item" data-section="queue">
+      <i class="fa-solid fa-list-ol"></i><span>Queue Status</span>
+    </a>
+    <a href="#" class="nav-item emergency-nav" data-section="emergency">
+      <i class="fa-solid fa-truck-medical"></i><span>Emergency</span>
+    </a>
+    <a href="#" class="nav-item" data-section="upload">
+      <i class="fa-solid fa-file-medical"></i><span>Upload Report</span>
+    </a>
+    <a href="#" class="nav-item" data-section="profile">
+      <i class="fa-solid fa-circle-user"></i><span>Profile</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <button onclick="logout()" class="logout-btn">
+      <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </button>
+  </div>
+</aside>
+
+<!-- ========== MAIN CONTENT ========== -->
+<main class="main-content">
+
+  <!-- Top Header -->
+  <header class="topbar">
+    <button class="hamburger" onclick="toggleSidebar()">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <div class="topbar-right">
+      <div class="notif-bell">
+        <i class="fa-solid fa-bell"></i>
+        <span class="badge" id="notif-badge">3</span>
+      </div>
+      <div class="user-avatar" onclick="showSection('profile')">
+        <img src="https://ui-avatars.com/api/?name=User&background=2563eb&color=fff" alt="User" id="nav-avatar"/>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== AUTH MODAL ===== -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal auth-modal-box">
+      <div class="auth-logo"><i class="fa-solid fa-hospital-user"></i> Mediqueue</div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="login-tab" onclick="switchAuth('login')">Login</button>
+        <button class="auth-tab" id="register-tab" onclick="switchAuth('register')">Register</button>
+      </div>
+      <form id="login-form" onsubmit="login(event)">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="login-email" placeholder="Enter your email" required/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="Enter your password" required/>
+        </div>
+        <button type="submit" class="btn btn-primary w-full">Login</button>
+        <p class="auth-switch">Demo: enter any email &amp; password</p>
+      </form>
+      <form id="register-form" style="display:none" onsubmit="register(event)">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="reg-name" placeholder="Your full name" required/>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="reg-email" placeholder="Your email" required/>
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="tel" id="reg-phone" placeholder="Your phone number"/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="reg-password" placeholder="Create password" required/>
+        </div>
+        <button type="submit" class="btn btn-primary w-full">Register</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <section class="section active" id="section-dashboard">
+    <div class="section-header">
+      <h2>Welcome back, <span id="dash-username">User</span> 👋</h2>
+      <p>Here's your health summary for today</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
+        <div class="stat-info">
+          <span class="stat-number" id="stat-appointments">0</span>
+          <span class="stat-label">Appointments</span>
+        </div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon"><i class="fa-solid fa-hospital"></i></div>
+        <div class="stat-info">
+          <span class="stat-number">12</span>
+          <span class="stat-label">Nearby Hospitals</span>
+        </div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-icon"><i class="fa-solid fa-list-ol"></i></div>
+        <div class="stat-info">
+          <span class="stat-number" id="stat-queue">--</span>
+          <span class="stat-label">Queue Position</span>
+        </div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon"><i class="fa-solid fa-file-medical"></i></div>
+        <div class="stat-info">
+          <span class="stat-number" id="stat-reports">0</span>
+          <span class="stat-label">Reports Uploaded</span>
+        </div>
+      </div>
+    </div>
+    <div class="card mt-20">
+      <div class="card-title">Quick Actions</div>
+      <div class="quick-actions">
+        <button class="quick-btn blue" onclick="showSection('hospitals')">
+          <i class="fa-solid fa-location-dot"></i> Find Hospital
+        </button>
+        <button class="quick-btn green" onclick="showSection('booking')">
+          <i class="fa-solid fa-calendar-plus"></i> Book Appointment
+        </button>
+        <button class="quick-btn orange" onclick="showSection('queue')">
+          <i class="fa-solid fa-list-ol"></i> Check Queue
+        </button>
+        <button class="quick-btn red" onclick="showSection('emergency')">
+          <i class="fa-solid fa-truck-medical"></i> Emergency
+        </button>
+      </div>
+    </div>
+    <div class="card mt-20">
+      <div class="card-title">Recent Appointments</div>
+      <div id="recent-appointments">
+        <div class="empty-state">
+          <i class="fa-solid fa-calendar-xmark"></i>
+          <p>No appointments yet. Book your first appointment!</p>
+          <button class="btn btn-primary mt-10" onclick="showSection('booking')">Book Now</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== NEARBY HOSPITALS ===== -->
+  <section class="section" id="section-hospitals">
+    <div class="section-header">
+      <h2><i class="fa-solid fa-location-dot"></i> Nearby Hospitals</h2>
+      <p>Hospitals near your current location</p>
+    </div>
+    <div class="map-controls">
+      <button class="btn btn-primary" onclick="detectLocation()">
+        <i class="fa-solid fa-crosshairs"></i> Detect My Location
+      </button>
+      <input type="text" id="search-location" placeholder="Or search a city..." class="search-input"/>
+      <button class="btn btn-secondary" onclick="searchLocation()">
+        <i class="fa-solid fa-magnifying-glass"></i> Search
+      </button>
+    </div>
+    <div class="map-wrapper">
+      <div id="map"></div>
+      <div class="map-loading" id="map-loading">
+        <i class="fa-solid fa-map-location-dot" style="font-size:3rem;color:#2563eb;margin-bottom:12px"></i>
+        <p>Click "Detect My Location" to find nearby hospitals</p>
+      </div>
+    </div>
+    <div class="card mt-20">
+      <div class="card-title">Hospital List</div>
+      <div id="hospital-list" class="hospital-list">
+        <div class="empty-state">
+          <i class="fa-solid fa-location-dot"></i>
+          <p>Detect location to see nearby hospitals</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== BOOK APPOINTMENT ===== -->
+  <section class="section" id="section-booking">
+    <div class="section-header">
+      <h2><i class="fa-solid fa-calendar-plus"></i> Book Appointment</h2>
+      <p>Schedule your visit in just a few steps</p>
+    </div>
+    <div class="card">
+      <form onsubmit="bookAppointment(event)" class="appointment-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label><i class="fa-solid fa-hospital"></i> Select Hospital</label>
+            <select id="appt-hospital" required>
+              <option value="">-- Choose Hospital --</option>
+              <option>Apollo Hospital</option>
+              <option>Fortis Hospital</option>
+              <option>Max Super Speciality</option>
+              <option>Kailash Hospital</option>
+              <option>Metro Hospital</option>
+              <option>Yatharth Hospital</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-stethoscope"></i> Department</label>
+            <select id="appt-dept" required onchange="loadDoctors()">
+              <option value="">-- Choose Department --</option>
+              <option value="General">General Medicine</option>
+              <option value="Cardiology">Cardiology</option>
+              <option value="Orthopedics">Orthopedics</option>
+              <option value="Neurology">Neurology</option>
+              <option value="Pediatrics">Pediatrics</option>
+              <option value="Dermatology">Dermatology</option>
+              <option value="ENT">ENT</option>
+              <option value="Gynecology">Gynecology</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-user-doctor"></i> Doctor</label>
+            <select id="appt-doctor" required>
+              <option value="">-- Select Department First --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-calendar-days"></i> Date</label>
+            <input type="date" id="appt-date" required/>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-clock"></i> Time Slot</label>
+            <select id="appt-time" required>
+              <option value="">-- Choose Time --</option>
+              <option>09:00 AM</option><option>10:00 AM</option>
+              <option>11:00 AM</option><option>12:00 PM</option>
+              <option>02:00 PM</option><option>03:00 PM</option>
+              <option>04:00 PM</option><option>05:00 PM</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-notes-medical"></i> Symptoms (Optional)</label>
+            <textarea id="appt-symptoms" placeholder="Describe symptoms briefly..." rows="3"></textarea>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">
+          <i class="fa-solid fa-calendar-plus"></i> Confirm Appointment
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== MY APPOINTMENTS ===== -->
+  <section class="section" id="section-appointments">
+    <div class="section-header">
+      <h2><i class="fa-solid fa-calendar-check"></i> My Appointments</h2>
+      <p>View and manage all your appointments</p>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterAppts('all',this)">All</button>
+      <button class="filter-btn" onclick="filterAppts('upcoming',this)">Upcoming</button>
+      <button class="filter-btn" onclick="filterAppts('completed',this)">Completed</button>
+      <button class="filter-btn" onclick="filterAppts('cancelled',this)">Cancelled</button>
+    </div>
+    <div id="appointments-list" class="appointments-list">
+      <div class="empty-state">
+        <i class="fa-solid fa-calendar-xmark"></i>
+        <p>No appointments found.</p>
+        <button class="btn btn-primary mt-10" onclick="showSection('booking')">Book Now</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== QUEUE STATUS ===== -->
+  <section class="section" id="section-queue">
+    <div class="section-header">
+      <h2><i class="fa-solid fa-list-ol"></i> Queue Status</h2>
+      <p>Real-time queue tracking</p>
+    </div>
+    <div id="queue-display">
+      <div class="empty-state">
+        <i class="fa-solid fa-list-ol"></i>
+        <p>Book an appointment to get a queue number</p>
+        <button class="btn btn-primary mt-10" onclick="showSection('booking')">Book Appointment</button>
+      </div>
+    </div>
+    <div class="card mt-20">
+      <div class="card-title"><i class="fa-solid fa-display"></i> Live Queue Board</div>
+      <div class="queue-board">
+        <div class="queue-board-item serving">
+          <span class="q-label">Now Serving</span>
+          <span class="q-num" id="board-serving">--</span>
+        </div>
+        <div class="queue-board-item next">
+          <span class="q-label">Next</span>
+          <span class="q-num" id="board-next">--</span>
+        </div>
+        <div class="queue-board-item waiting">
+          <span class="q-label">Waiting</span>
+          <span class="q-num" id="board-waiting">--</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== EMERGENCY ===== -->
+  <section class="section" id="section-emergency">
+    <div class="section-header">
+      <h2><i class="fa-solid fa-truck-medical"></i> Emergency</h2>
+      <p>Get immediate medical assistance</p>
+    </div>
+    <div class="emergency-sos-container">
+      <button class="sos-btn pulse" onclick="triggerEmergency()" id="sos-btn">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>SOS EMERGENCY</span>
+        <small>Tap for immediate help</small>
+      </button>
+    </div>
+    <div class="helpline-grid">
+      <div class="helpline-card">
+        <i class="fa-solid fa-phone" style="color:#ef4444"></i>
+        <div><div class="help-label">Ambulance</div><a href="tel:102" class="help-num">102</a></div>
+      </div>
+      <div class="helpline-card">
+        <i class="fa-solid fa-phone" style="color:#f97316"></i>
+        <div><div class="help-label">National Emergency</div><a href="tel:112" class="help-num">112</a></div>
+      </div>
+      <div class="helpline-card">
+        <i class="fa-solid fa-phone" style="color:#2563eb"></i>
+        <div><div class="help-label">Police</div><a href="tel:100" class="help-num">100</a></div>
+      </div>
+      <div class="helpline-card">
+        <i class="fa-solid fa-phone" style="color:#16a34a"></i>
+        <div><div class="help-label">Fire Brigade</div><a href="tel:101" class="help-num">101</a></div>
+      </div>
+    </div>
+    <div class="card mt-20" id="emergency-hospital-info" style="display:none">
+      <div class="card-title" style="color:#ef4444">
+        <i class="fa-solid fa-triangle-exclamation"></i> Nearest Emergency Hospital
+      </div>
+      <div id="emergency-hospital-details"></div>
+    </div>
+  </section>
+
+  <!-- ===== UPLOAD REPORT ===== -->
+  <section class="section" id="section-upload">
+    <div class="section-header">
+      <h2><i class="fa-solid fa-file-medical"></i> Upload Medical Report</h2>
+      <p>Upload your reports for doctor review</p>
+    </div>
+    <div class="card">
+      <div class="upload-zone" id="upload-zone"
+           ondragover="dragOver(event)" ondragleave="dragLeave(event)"
+           ondrop="dropFile(event)" onclick="document.getElementById('file-input').click()">
+        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+        <p>Drag &amp; Drop your file here</p>
+        <small>Supported: PDF, JPG, PNG (Max 10MB)</small>
+        <button class="btn btn-secondary mt-10" type="button">Browse Files</button>
+        <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png"
+               style="display:none" onchange="handleFileUpload(event)"/>
+      </div>
+    </div>
+    <div class="card mt-20" id="report-result" style="display:none">
+      <div class="card-title"><i class="fa-solid fa-magnifying-glass-chart"></i> Extracted Information</div>
+      <div class="report-info-grid" id="report-info"></div>
+    </div>
+    <div class="card mt-20">
+      <div class="card-title">Uploaded Reports</div>
+      <div id="reports-list">
+        <div class="empty-state">
+          <i class="fa-solid fa-folder-open"></i>
+          <p>No reports uploaded yet</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PROFILE ===== -->
+  <section class="section" id="section-profile">
+    <div class="section-header">
+      <h2><i class="fa-solid fa-circle-user"></i> My Profile</h2>
+      <p>Manage your personal information</p>
+    </div>
+    <div class="profile-wrapper">
+      <div class="profile-avatar-card">
+        <img src="https://ui-avatars.com/api/?name=User&background=2563eb&color=fff&size=120"
+             alt="Avatar" class="profile-pic" id="profile-pic"/>
+        <h3 id="profile-name-display">User</h3>
+        <p id="profile-email-display">user@example.com</p>
+        <span class="badge-pill">Patient</span>
+      </div>
+      <div class="profile-form-card">
+        <form onsubmit="saveProfile(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="profile-name"/>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="profile-email"/>
+            </div>
+            <div class="form-group">
+              <label>Phone</label>
+              <input type="tel" id="profile-phone"/>
+            </div>
+            <div class="form-group">
+              <label>Date of Birth</label>
+              <input type="date" id="profile-dob"/>
+            </div>
+            <div class="form-group">
+              <label>Blood Group</label>
+              <select id="profile-blood">
+                <option>A+</option><option>A-</option>
+                <option>B+</option><option>B-</option>
+                <option>O+</option><option>O-</option>
+                <option>AB+</option><option>AB-</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Address</label>
+              <input type="text" id="profile-address"/>
+            </div>
+            <div class="form-group">
+              <label>Emergency Contact</label>
+              <input type="tel" id="profile-emergency"/>
+            </div>
+            <div class="form-group">
+              <label>Known Allergies</label>
+              <textarea id="profile-allergies" rows="2" placeholder="e.g. Penicillin..."></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-floppy-disk"></i> Save Changes
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Success Modal -->
+<div class="modal-overlay" id="success-modal" style="display:none">
+  <div class="modal success-modal-box">
+    <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+    <h3 id="success-title">Done!</h3>
+    <p id="success-msg"></p>
+    <div class="queue-ticket" id="queue-ticket"></div>
+    <button class="btn btn-primary mt-20" onclick="closeSuccessModal()">Done</button>
+  </div>
+</div>
+
+<!-- Google Maps (replace YOUR_GOOGLE_MAPS_API_KEY with actual key) -->
+<script async defer
+  src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initMap">
+</script>
+<script>
+/* ==============================
+   MEDIQUEUE - app.js
+   Smart Hospital Locator System
+   ============================== */
+
+// ========== STATE ==========
+const state = {
+  user: null,
+  appointments: [],
+  reports: [],
+  queueNumber: null,
+  map: null,
+  markers: [],
+  userLat: null,
+  userLng: null,
+};
+
+// ========== DOCTORS DATA ==========
+const doctorsDB = {
+  General:      ['Dr. A.K. Sharma', 'Dr. Priya Singh', 'Dr. Mohit Verma'],
+  Cardiology:   ['Dr. R.S. Gupta', 'Dr. Neha Khanna', 'Dr. Arvind Mehta'],
+  Orthopedics:  ['Dr. S.K. Jain', 'Dr. Rekha Yadav', 'Dr. Vikas Tiwari'],
+  Neurology:    ['Dr. P.K. Mishra', 'Dr. Anita Roy', 'Dr. Sunil Das'],
+  Pediatrics:   ['Dr. Kavita Sharma', 'Dr. Ravi Kumar', 'Dr. Meena Patel'],
+  Dermatology:  ['Dr. Pooja Agarwal', 'Dr. Ajay Singh', 'Dr. Nisha Rani'],
+  ENT:          ['Dr. Deepak Rao', 'Dr. Sunita Verma', 'Dr. Harish Malik'],
+  Gynecology:   ['Dr. Madhuri Shah', 'Dr. Smita Joshi', 'Dr. Rekha Nair'],
+};
+
+// Sample nearby hospitals (shown when map API not available)
+const sampleHospitals = [
+  { name: 'Apollo Hospital', dist: '1.2 km', rating: 4.5, emergency: true  },
+  { name: 'Fortis Hospital', dist: '2.1 km', rating: 4.3, emergency: true  },
+  { name: 'Max Super Speciality', dist: '3.4 km', rating: 4.6, emergency: true  },
+  { name: 'Kailash Hospital', dist: '1.8 km', rating: 4.1, emergency: false },
+  { name: 'Metro Hospital', dist: '4.2 km', rating: 3.9, emergency: false },
+  { name: 'Yatharth Hospital', dist: '2.7 km', rating: 4.2, emergency: true  },
+];
+
+// ========== AUTH ==========
+function login(e) {
+  e.preventDefault();
+  const email = document.getElementById('login-email').value;
+  const name = email.split('@')[0].replace(/\./g,' ')
+               .replace(/\b\w/g, c => c.toUpperCase());
+  state.user = { name, email };
+  localStorage.setItem('mq_user', JSON.stringify(state.user));
+  closeAuthModal();
+  onUserLoaded();
+  showToast(`Welcome back, ${name}!`, 'success');
+}
+
+function register(e) {
+  e.preventDefault();
+  const name  = document.getElementById('reg-name').value;
+  const email = document.getElementById('reg-email').value;
+  const phone = document.getElementById('reg-phone').value;
+  state.user = { name, email, phone };
+  localStorage.setItem('mq_user', JSON.stringify(state.user));
+  closeAuthModal();
+  onUserLoaded();
+  showToast(`Account created! Welcome, ${name}!`, 'success');
+}
+
+function logout() {
+  if(!confirm('Are you sure you want to logout?')) return;
+  state.user = null;
+  state.appointments = [];
+  state.queueNumber = null;
+  localStorage.clear();
+  location.reload();
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-modal').style.display = 'none';
+}
+
+function switchAuth(tab) {
+  document.getElementById('login-form').style.display    = tab === 'login'    ? 'block' : 'none';
+  document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('login-tab').classList.toggle('active',    tab === 'login');
+  document.getElementById('register-tab').classList.toggle('active', tab === 'register');
+}
+
+function onUserLoaded() {
+  if (!state.user) return;
+  // Update UI with user info
+  document.getElementById('dash-username').textContent = state.user.name;
+  document.getElementById('profile-name-display').textContent  = state.user.name;
+  document.getElementById('profile-email-display').textContent = state.user.email;
+  document.getElementById('profile-name').value  = state.user.name;
+  document.getElementById('profile-email').value = state.user.email;
+  document.getElementById('profile-phone').value = state.user.phone || '';
+  // Update avatar
+  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(state.user.name)}&background=2563eb&color=fff`;
+  document.getElementById('nav-avatar').src = avatarUrl;
+  document.getElementById('profile-pic').src = avatarUrl + '&size=120';
+  // Load saved appointments
+  const saved = localStorage.getItem('mq_appointments');
+  if (saved) state.appointments = JSON.parse(saved);
+  const savedReports = localStorage.getItem('mq_reports');
+  if (savedReports) state.reports = JSON.parse(savedReports);
+  updateDashStats();
+}
+
+// ========== NAVIGATION ==========
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`section-${name}`).classList.add('active');
+  document.querySelector(`[data-section="${name}"]`)?.classList.add('active');
+  document.getElementById('topbar-title').textContent =
+    { dashboard:'Dashboard', hospitals:'Nearby Hospitals', booking:'Book Appointment',
+      appointments:'My Appointments', queue:'Queue Status', emergency:'Emergency',
+      upload:'Upload Report', profile:'Profile' }[name] || name;
+  // Section-specific actions
+  if (name === 'appointments') renderAppointments();
+  if (name === 'queue')        renderQueue();
+  if (name === 'upload')       renderReports();
+  // Close sidebar on mobile
+  if (window.innerWidth < 900) document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// Nav clicks
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', e => {
+    e.preventDefault();
+    showSection(item.dataset.section);
+  });
+});
+
+// ========== GOOGLE MAPS ==========
+let map = null;
+
+// Called by Google Maps API callback
+function initMap() {
+  // Map is initialized on demand when user clicks detect location
+  console.log('Google Maps API loaded');
+}
+
+function detectLocation() {
+  if (!navigator.geolocation) {
+    showToast('Geolocation not supported by your browser', 'error');
+    return;
+  }
+  showToast('Detecting your location...', '');
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      state.userLat = pos.coords.latitude;
+      state.userLng = pos.coords.longitude;
+      loadMap(state.userLat, state.userLng);
+      loadNearbyHospitals(state.userLat, state.userLng);
+    },
+    err => {
+      showToast('Location access denied. Showing sample data.', 'warning');
+      // Default to Greater Noida
+      loadMap(28.4744, 77.5040);
+      showSampleHospitals();
+    }
+  );
+}
+
+function loadMap(lat, lng) {
+  const mapEl = document.getElementById('map');
+  document.getElementById('map-loading').classList.add('hidden');
+
+  // Check if Google Maps is available
+  if (typeof google === 'undefined' || !google.maps) {
+    // Show placeholder map with message
+    mapEl.style.background = 'linear-gradient(135deg,#dbeafe,#eff6ff)';
+    mapEl.style.display = 'flex';
+    mapEl.style.alignItems = 'center';
+    mapEl.style.justifyContent = 'center';
+    mapEl.style.flexDirection = 'column';
+    mapEl.style.color = '#2563eb';
+    mapEl.style.fontFamily = 'Inter,sans-serif';
+    mapEl.innerHTML = `
+      <i class="fa-solid fa-map-location-dot" style="font-size:3rem;margin-bottom:12px"></i>
+      <p style="font-weight:600;font-size:1rem">Map loaded for: ${lat.toFixed(4)}, ${lng.toFixed(4)}</p>
+      <p style="font-size:0.85rem;color:#64748b;margin-top:6px">Add your Google Maps API key in index.html to enable live map</p>
+    `;
+    showSampleHospitals();
+    return;
+  }
+
+  // Real Google Maps
+  map = new google.maps.Map(mapEl, {
+    center: { lat, lng },
+    zoom: 14,
+    styles: [
+      { featureType:'poi.business', stylers:[{visibility:'off'}] },
+    ]
+  });
+
+  // User location marker
+  new google.maps.Marker({
+    position: { lat, lng },
+    map,
+    title: 'Your Location',
+    icon: {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 10,
+      fillColor: '#2563eb',
+      fillOpacity: 1,
+      strokeColor: '#fff',
+      strokeWeight: 3,
+    }
+  });
+
+  // Search for nearby hospitals using Places API
+  const service = new google.maps.places.PlacesService(map);
+  service.nearbySearch({
+    location: { lat, lng },
+    radius: 5000,
+    type: 'hospital'
+  }, (results, status) => {
+    if (status === google.maps.places.PlacesServiceStatus.OK) {
+      displayGoogleHospitals(results, lat, lng);
+    } else {
+      showSampleHospitals();
+    }
+  });
+}
+
+function displayGoogleHospitals(places, userLat, userLng) {
+  const list = document.getElementById('hospital-list');
+  list.innerHTML = '';
+  state.markers.forEach(m => m.setMap(null));
+  state.markers = [];
+
+  places.slice(0, 10).forEach((place, i) => {
+    // Map marker
+    const marker = new google.maps.Marker({
+      position: place.geometry.location,
+      map,
+      title: place.name,
+      label: { text: String(i+1), color:'#fff', fontWeight:'bold' }
+    });
+    state.markers.push(marker);
+
+    // Distance calc
+    const dist = getDistance(
+      userLat, userLng,
+      place.geometry.location.lat(),
+      place.geometry.location.lng()
+    );
+
+    // Info window
+    const infoWin = new google.maps.InfoWindow({
+      content: `<div style="font-family:Inter,sans-serif;padding:8px">
+        <b>${place.name}</b><br>
+        <small>${place.vicinity}</small><br>
+        <small>⭐ ${place.rating || 'N/A'} &nbsp; 📍 ${dist} km</small>
+      </div>`
+    });
+    marker.addListener('click', () => infoWin.open(map, marker));
+
+    // List item
+    list.insertAdjacentHTML('beforeend', hospitalItemHTML(place.name, `${dist} km`, place.rating));
+  });
+}
+
+function showSampleHospitals() {
+  const list = document.getElementById('hospital-list');
+  list.innerHTML = '';
+  sampleHospitals.forEach(h => {
+    list.insertAdjacentHTML('beforeend', hospitalItemHTML(h.name, h.dist, h.rating, h.emergency));
+  });
+}
+
+function hospitalItemHTML(name, dist, rating, emergency=false) {
+  return `
+    <div class="hospital-item">
+      <div class="hosp-icon">
+        <i class="fa-solid fa-hospital-user"></i>
+      </div>
+      <div>
+        <div class="hosp-name">${name} ${emergency ? '<span style="color:#ef4444;font-size:0.75rem;">🚨 Emergency</span>' : ''}</div>
+        <div class="hosp-dist">📍 ${dist} &nbsp; ⭐ ${rating || 'N/A'}</div>
+      </div>
+      <div class="hosp-actions">
+        <button class="btn btn-secondary" onclick="showSection('booking');setHospital('${name}')">
+          <i class="fa-solid fa-calendar-plus"></i> Book
+        </button>
+        <button class="btn btn-primary" onclick="getDirections('${name}')">
+          <i class="fa-solid fa-diamond-turn-right"></i> Route
+        </button>
+      </div>
+    </div>`;
+}
+
+function searchLocation() {
+  const q = document.getElementById('search-location').value.trim();
+  if (!q) return;
+  if (typeof google === 'undefined') {
+    showToast('Map not available. Add Google Maps API key.', 'warning');
+    showSampleHospitals();
+    return;
+  }
+  const geo = new google.maps.Geocoder();
+  geo.geocode({ address: q }, (results, status) => {
+    if (status === 'OK') {
+      const loc = results[0].geometry.location;
+      loadMap(loc.lat(), loc.lng());
+    } else {
+      showToast('Location not found. Try again.', 'error');
+    }
+  });
+}
+
+function setHospital(name) {
+  document.getElementById('appt-hospital').value = name;
+}
+
+function getDirections(name) {
+  const q = encodeURIComponent(name);
+  window.open(`https://www.google.com/maps/search/${q}`, '_blank');
+}
+
+function getDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLng = (lng2-lng1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+  return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))).toFixed(1);
+}
+
+// ========== APPOINTMENT BOOKING ==========
+function loadDoctors() {
+  const dept = document.getElementById('appt-dept').value;
+  const sel  = document.getElementById('appt-doctor');
+  sel.innerHTML = '<option value="">-- Choose Doctor --</option>';
+  if (dept && doctorsDB[dept]) {
+    doctorsDB[dept].forEach(d => {
+      sel.insertAdjacentHTML('beforeend', `<option>${d}</option>`);
+    });
+  }
+}
+
+function bookAppointment(e) {
+  e.preventDefault();
+  if (!state.user) { showToast('Please login first', 'error'); return; }
+
+  const hospital = document.getElementById('appt-hospital').value;
+  const dept     = document.getElementById('appt-dept').value;
+  const doctor   = document.getElementById('appt-doctor').value;
+  const date     = document.getElementById('appt-date').value;
+  const time     = document.getElementById('appt-time').value;
+  const symptoms = document.getElementById('appt-symptoms').value;
+
+  // Auto-assign queue number
+  const qNum = Math.floor(Math.random() * 40) + 5;
+  const wait  = qNum * 8; // 8 min per patient
+
+  const appt = {
+    id: Date.now(),
+    hospital, dept, doctor, date, time, symptoms,
+    status: 'upcoming',
+    queueNumber: qNum,
+    waitTime: wait,
+    bookedAt: new Date().toISOString()
+  };
+
+  state.appointments.unshift(appt);
+  state.queueNumber = qNum;
+  localStorage.setItem('mq_appointments', JSON.stringify(state.appointments));
+  updateDashStats();
+  updateQueueBoard(qNum);
+
+  // Show success
+  document.getElementById('success-title').textContent = 'Appointment Confirmed! 🎉';
+  document.getElementById('success-msg').textContent =
+    `Dr. ${doctor} at ${hospital} on ${formatDate(date)} at ${time}`;
+  document.getElementById('queue-ticket').innerHTML = `
+    <div>Your Queue Number</div>
+    <div class="ticket-num">${String(qNum).padStart(3,'0')}</div>
+    <div style="font-size:0.85rem;margin-top:8px">Est. wait: ~${wait} mins</div>
+  `;
+  document.getElementById('success-modal').style.display = 'flex';
+
+  // Reset form
+  e.target.reset();
+  document.getElementById('appt-doctor').innerHTML = '<option value="">-- Select Department First --</option>';
+
+  showToast('Appointment booked successfully!', 'success');
+  document.getElementById('stat-queue').textContent = `#${qNum}`;
+}
+
+// ========== RENDER APPOINTMENTS ==========
+function renderAppointments(filter='all') {
+  const list = document.getElementById('appointments-list');
+  let appts = state.appointments;
+  if (filter !== 'all') appts = appts.filter(a => a.status === filter);
+
+  if (appts.length === 0) {
+    list.innerHTML = `<div class="empty-state">
+      <i class="fa-solid fa-calendar-xmark"></i>
+      <p>No ${filter === 'all' ? '' : filter} appointments found.</p>
+      <button class="btn btn-primary mt-10" onclick="showSection('booking')">Book Now</button>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = appts.map(a => `
+    <div class="appt-card" id="appt-${a.id}">
+      <div class="appt-icon"><i class="fa-solid fa-stethoscope"></i></div>
+      <div class="appt-info">
+        <div class="appt-hospital">${a.hospital}</div>
+        <div class="appt-detail">
+          ${a.doctor} &bull; ${a.dept} &bull; ${formatDate(a.date)} at ${a.time}
+        </div>
+        <div class="appt-detail" style="margin-top:4px">
+          Queue: <b>#${String(a.queueNumber).padStart(3,'0')}</b> &bull;
+          Est. wait: <b>~${a.waitTime} mins</b>
+        </div>
+      </div>
+      <span class="appt-status status-${a.status}">${a.status}</span>
+      <div class="appt-actions">
+        ${a.status === 'upcoming' ? `
+          <button class="btn btn-success" onclick="markCompleted(${a.id})">Done</button>
+          <button class="btn btn-danger"  onclick="cancelAppt(${a.id})">Cancel</button>
+        ` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  // Update recent on dashboard
+  const recent = document.getElementById('recent-appointments');
+  const latest = state.appointments.slice(0,3);
+  if (latest.length > 0) {
+    recent.innerHTML = latest.map(a => `
+      <div class="appt-card" style="margin-bottom:10px">
+        <div class="appt-icon"><i class="fa-solid fa-stethoscope"></i></div>
+        <div class="appt-info">
+          <div class="appt-hospital">${a.hospital}</div>
+          <div class="appt-detail">${a.doctor} &bull; ${formatDate(a.date)} at ${a.time}</div>
+        </div>
+        <span class="appt-status status-${a.status}">${a.status}</span>
+      </div>
+    `).join('');
+  }
+}
+
+function filterAppts(filter, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAppointments(filter);
+}
+
+function markCompleted(id) {
+  const a = state.appointments.find(a => a.id === id);
+  if (a) { a.status = 'completed'; saveAndRender(); }
+}
+
+function cancelAppt(id) {
+  if(!confirm('Cancel this appointment?')) return;
+  const a = state.appointments.find(a => a.id === id);
+  if (a) { a.status = 'cancelled'; saveAndRender(); }
+}
+
+function saveAndRender() {
+  localStorage.setItem('mq_appointments', JSON.stringify(state.appointments));
+  renderAppointments();
+  updateDashStats();
+}
+
+// ========== QUEUE ==========
+function renderQueue() {
+  const div = document.getElementById('queue-display');
+  const upcoming = state.appointments.filter(a => a.status === 'upcoming');
+
+  if (upcoming.length === 0) {
+    div.innerHTML = `<div class="empty-state">
+      <i class="fa-solid fa-list-ol"></i>
+      <p>Book an appointment to get a queue number</p>
+      <button class="btn btn-primary mt-10" onclick="showSection('booking')">Book Appointment</button>
+    </div>`;
+    return;
+  }
+
+  const latest = upcoming[0];
+  div.innerHTML = `
+    <div class="my-queue-card">
+      <div class="my-queue-label">Your Queue Number</div>
+      <div class="my-queue-num">${String(latest.queueNumber).padStart(3,'0')}</div>
+      <div class="my-queue-label" style="margin-top:8px">${latest.hospital} &bull; ${latest.doctor}</div>
+      <div class="my-queue-wait">
+        <i class="fa-solid fa-clock"></i>
+        Estimated waiting time: <b>~${latest.waitTime} minutes</b>
+        <br><small style="opacity:0.8">Position in queue: ${latest.queueNumber}</small>
+      </div>
+    </div>
+  `;
+  updateQueueBoard(latest.queueNumber);
+}
+
+function updateQueueBoard(myNum) {
+  const serving = Math.max(1, myNum - Math.floor(Math.random()*5) - 3);
+  document.getElementById('board-serving').textContent = String(serving).padStart(3,'0');
+  document.getElementById('board-next').textContent    = String(serving+1).padStart(3,'0');
+  document.getElementById('board-waiting').textContent = myNum - serving;
+  document.getElementById('stat-queue').textContent    = `#${myNum}`;
+}
+
+// Auto-update queue every 30 seconds
+setInterval(() => {
+  const upcoming = state.appointments.filter(a => a.status === 'upcoming');
+  if (upcoming.length > 0 && upcoming[0].waitTime > 0) {
+    upcoming[0].waitTime = Math.max(0, upcoming[0].waitTime - 1);
+    localStorage.setItem('mq_appointments', JSON.stringify(state.appointments));
+    updateQueueBoard(upcoming[0].queueNumber);
+  }
+}, 30000);
+
+// ========== EMERGENCY ==========
+function triggerEmergency() {
+  const btn = document.getElementById('sos-btn');
+  btn.classList.remove('pulse');
+  btn.classList.add('activated');
+  btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>CONNECTING...</span>`;
+
+  showToast('🚨 Emergency triggered! Finding nearest hospital...', 'error');
+
+  setTimeout(() => {
+    btn.innerHTML = `<i class="fa-solid fa-circle-check"></i><span>HELP COMING</span><small>Ambulance dispatched</small>`;
+
+    // Show nearest emergency hospital
+    const nearest = sampleHospitals.filter(h => h.emergency)[0];
+    const infoDiv = document.getElementById('emergency-hospital-info');
+    const detDiv  = document.getElementById('emergency-hospital-details');
+    infoDiv.style.display = 'block';
+    detDiv.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:10px">
+        <div class="report-info-item">
+          <div class="report-info-label">Hospital</div>
+          <div class="report-info-value">${nearest.name}</div>
+        </div>
+        <div class="report-info-item">
+          <div class="report-info-label">Distance</div>
+          <div class="report-info-value">${nearest.dist}</div>
+        </div>
+        <div class="report-info-item">
+          <div class="report-info-label">ETA (Ambulance)</div>
+          <div class="report-info-value">~8 minutes</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;padding:14px;background:#fef2f2;border-radius:10px;border:1px solid #fca5a5">
+        <b style="color:#ef4444">Priority Queue Assigned</b>
+        <p style="font-size:0.9rem;color:#64748b;margin-top:4px">
+          You have been assigned <b>Priority #001</b> in the emergency queue at ${nearest.name}.
+          Please stay calm and wait for the ambulance.
+        </p>
+      </div>
+    `;
+    showToast('Ambulance dispatched! ETA ~8 minutes', 'success');
+
+    // Add emergency appointment
+    const emergencyAppt = {
+      id: Date.now(),
+      hospital: nearest.name,
+      dept: 'Emergency',
+      doctor: 'Emergency Team',
+      date: new Date().toISOString().split('T')[0],
+      time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),
+      symptoms: 'EMERGENCY',
+      status: 'upcoming',
+      queueNumber: 1,
+      waitTime: 8,
+      bookedAt: new Date().toISOString(),
+      isEmergency: true
+    };
+    state.appointments.unshift(emergencyAppt);
+    localStorage.setItem('mq_appointments', JSON.stringify(state.appointments));
+    updateDashStats();
+  }, 2000);
+}
+
+// ========== UPLOAD REPORT ==========
+function dragOver(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.add('dragover');
+}
+function dragLeave(e) {
+  document.getElementById('upload-zone').classList.remove('dragover');
+}
+function dropFile(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+function handleFileUpload(e) {
+  const file = e.target.files[0];
+  if (file) processFile(file);
+}
+
+function processFile(file) {
+  // Validate
+  const allowed = ['application/pdf','image/jpeg','image/png','image/jpg'];
+  if (!allowed.includes(file.type)) {
+    showToast('Only PDF, JPG, PNG files allowed!', 'error'); return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    showToast('File too large! Max 10MB allowed.', 'error'); return;
+  }
+
+  showToast('Analyzing report...', '');
+
+  // Simulate AI extraction after 1.5 seconds
+  setTimeout(() => {
+    const extractedInfo = simulateExtraction(file.name);
+    showExtractedInfo(extractedInfo);
+
+    // Save to reports list
+    const report = {
+      id: Date.now(),
+      name: file.name,
+      size: (file.size/1024).toFixed(1) + ' KB',
+      type: file.type,
+      uploadedAt: new Date().toISOString(),
+      extracted: extractedInfo
+    };
+    state.reports.unshift(report);
+    localStorage.setItem('mq_reports', JSON.stringify(state.reports));
+    updateDashStats();
+    renderReports();
+    showToast('Report uploaded and analyzed!', 'success');
+  }, 1500);
+}
+
+function simulateExtraction(filename) {
+  // Simulated AI extraction result
+  const names    = ['Anurag Tiwari','Rohit Kumar','Priya Sharma','Manvi Goyal'];
+  const issues   = ['Hypertension','Diabetes Type 2','Viral Fever','Back Pain','Migraine'];
+  const doctors  = ['Dr. A.K. Sharma (General)','Dr. R.S. Gupta (Cardiology)',
+                    'Dr. Priya Singh (General)','Dr. S.K. Jain (Orthopedics)'];
+  const bloodGrp = ['A+','B+','O+','AB+','O-'];
+  const ages     = ['21','25','30','35','42','28'];
+
+  return {
+    'Patient Name': names[Math.floor(Math.random()*names.length)],
+    'Age':          ages[Math.floor(Math.random()*ages.length)],
+    'Blood Group':  bloodGrp[Math.floor(Math.random()*bloodGrp.length)],
+    'Detected Issue': issues[Math.floor(Math.random()*issues.length)],
+    'Suggested Doctor': doctors[Math.floor(Math.random()*doctors.length)],
+    'Report Date':  new Date().toLocaleDateString('en-IN'),
+  };
+}
+
+function showExtractedInfo(info) {
+  const div = document.getElementById('report-info');
+  div.innerHTML = Object.entries(info).map(([k,v]) => `
+    <div class="report-info-item">
+      <div class="report-info-label">${k}</div>
+      <div class="report-info-value">${v}</div>
+    </div>
+  `).join('');
+  document.getElementById('report-result').style.display = 'block';
+}
+
+function renderReports() {
+  const div = document.getElementById('reports-list');
+  if (state.reports.length === 0) {
+    div.innerHTML = `<div class="empty-state">
+      <i class="fa-solid fa-folder-open"></i><p>No reports uploaded yet</p>
+    </div>`;
+    return;
+  }
+  div.innerHTML = state.reports.map(r => `
+    <div class="report-list-item">
+      <i class="fa-solid ${r.type==='application/pdf' ? 'fa-file-pdf' : 'fa-file-image'}"
+         style="color:${r.type==='application/pdf' ? '#ef4444' : '#2563eb'}"></i>
+      <div class="report-meta">
+        <div class="report-name">${r.name}</div>
+        <div class="report-date">${formatDate(r.uploadedAt.split('T')[0])} &bull; ${r.size}</div>
+      </div>
+      <div style="font-size:0.8rem;color:#16a34a;font-weight:600">
+        <i class="fa-solid fa-circle-check"></i> Analyzed
+      </div>
+    </div>
+  `).join('');
+}
+
+// ========== PROFILE ==========
+function saveProfile(e) {
+  e.preventDefault();
+  const name  = document.getElementById('profile-name').value;
+  const email = document.getElementById('profile-email').value;
+  const phone = document.getElementById('profile-phone').value;
+  state.user = { ...state.user, name, email, phone };
+  localStorage.setItem('mq_user', JSON.stringify(state.user));
+  document.getElementById('profile-name-display').textContent  = name;
+  document.getElementById('profile-email-display').textContent = email;
+  document.getElementById('dash-username').textContent = name;
+  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2563eb&color=fff`;
+  document.getElementById('nav-avatar').src = avatarUrl;
+  document.getElementById('profile-pic').src = avatarUrl + '&size=120';
+  showToast('Profile saved successfully!', 'success');
+}
+
+// ========== UTILS ==========
+function updateDashStats() {
+  document.getElementById('stat-appointments').textContent = state.appointments.length;
+  document.getElementById('stat-reports').textContent      = state.reports.length;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = `toast ${type} show`;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function closeSuccessModal() {
+  document.getElementById('success-modal').style.display = 'none';
+}
+
+// ========== SET MIN DATE FOR BOOKING ==========
+function setMinDate() {
+  const today = new Date().toISOString().split('T')[0];
+  const dateInput = document.getElementById('appt-date');
+  if (dateInput) dateInput.min = today;
+}
+
+// ========== INIT ==========
+window.addEventListener('DOMContentLoaded', () => {
+  setMinDate();
+
+  // Load saved user
+  const saved = localStorage.getItem('mq_user');
+  if (saved) {
+    state.user = JSON.parse(saved);
+    document.getElementById('auth-modal').style.display = 'none';
+    onUserLoaded();
+  }
+  // Initial renders
+  renderAppointments();
+});
+
+// Close sidebar on outside click (mobile)
+document.querySelector('.main-content').addEventListener('click', () => {
+  if (window.innerWidth < 900) {
+    document.getElementById('sidebar').classList.remove('open');
+  }
+});
+
+</script>
+</body>
+</html>
