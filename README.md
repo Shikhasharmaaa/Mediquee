@@ -1,2 +1,0 @@
-# Mediquee
-Management
